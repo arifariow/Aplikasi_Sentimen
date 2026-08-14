@@ -116,7 +116,7 @@ def detect_aspect(text):
         return "Umum (Tidak Spesifik)"
 
 # --- UI LAYOUT ---
-st.title("Aplikasi Prediksi Sentimen & Analisis Aspek (ABSA)", icon=":material/local_hospital:")
+st.title("Aplikasi Prediksi Sentimen & Analisis Aspek (ABSA)")
 st.markdown("Sistem *Enterprise-grade* ini menggunakan algoritma **XGBoost** untuk mengklasifikasikan sentimen dan mendeteksi aspek keluhan/pujian pengguna secara otomatis.")
 st.markdown("---")
 
