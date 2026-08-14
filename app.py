@@ -161,11 +161,10 @@ with tab1:
                     st.progress(float(np.max(pred_proba)))
                     st.caption(f"Tingkat Keyakinan Model XGBoost: {confidence:.2f}%")
                     
-                    st.markdown("---")
-                    with st.expander("Detail Preprocessing Teks (Penelusuran White Box)", icon=":material/settings_applications:"):
-                        for step_name, step_result in steps_dict.items():
-                            st.markdown(f"**{step_name}:**")
-                            st.code(step_result)
+                    st.markdown("### Detail Preprocessing (Penelusuran White Box)")
+                    for step_name, step_result in steps_dict.items():
+                        st.markdown(f"**{step_name}:**")
+                        st.code(step_result)
     with col1B:
          st.info("Fitur *Single Text* ini digunakan untuk menguji fungsionalitas model *XGBoost* secara spesifik pada satu buah ulasan beserta detail *White Box* preprocessing-nya.", icon=":material/info:")
 
@@ -247,7 +246,7 @@ with tab3:
     st.info("Dashboard ini menampilkan visualisasi statis dari dataset pelatihan (*Training Data*) berjumlah 3.352 ulasan dari Halodoc dan Alodokter.", icon=":material/bar_chart:")
     
     colA, colB, colC = st.columns(3)
-    img_dir = r"c:\Users\LENOVO\Documents\skripsi\Data_Skripsi_Halodoc_Alodokter"
+    img_dir = "assets"
     
     with colA:
         wc_pos = os.path.join(img_dir, "WordCloud_Positif_Halodoc.png")
