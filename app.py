@@ -5,6 +5,7 @@ import pickle
 import os
 import re
 import io
+import datetime
 import altair as alt
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 
@@ -115,6 +116,22 @@ def detect_aspect(text):
     else:
         return "Umum (Tidak Spesifik)"
 
+# --- SAVE FEEDBACK FUNCTION ---
+def save_feedback(original_text, predicted_label, true_label):
+    filename = "koreksi_model.csv"
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    new_data = pd.DataFrame([{
+        "Waktu": timestamp,
+        "Ulasan": original_text,
+        "Prediksi_Mesin": predicted_label,
+        "Label_Kebenaran": true_label
+    }])
+    
+    if not os.path.isfile(filename):
+        new_data.to_csv(filename, index=False)
+    else:
+        new_data.to_csv(filename, mode='a', header=False, index=False)
+
 # --- UI LAYOUT ---
 st.title("Aplikasi Prediksi Sentimen & Analisis Aspek (ABSA)")
 st.markdown("Sistem *Enterprise-grade* ini menggunakan algoritma **XGBoost** untuk mengklasifikasikan sentimen dan mendeteksi aspek keluhan/pujian pengguna secara otomatis.")
@@ -128,13 +145,21 @@ with tab1:
     col1A, col1B = st.columns([2, 1])
     with col1A:
         st.markdown("**Form Input Ulasan Pengguna:**")
-        user_input = st.text_area("", height=120, placeholder="Contoh: Aplikasi ini sangat lambat saat memuat resep obat namun dokternya ramah.", label_visibility="collapsed")
         
-        if st.button("Jalankan Analisis Sentimen", type="primary", use_container_width=True, icon=":material/analytics:"):
+        # State management to preserve input and prediction
+        if "last_input" not in st.session_state:
+            st.session_state.last_input = ""
+            st.session_state.predicted_sentiment = ""
+            st.session_state.show_results = False
+            st.session_state.feedback_submitted = False
+            
+        user_input = st.text_area("Formulasikan kalimat ulasan (tekan Submit):", value=st.session_state.last_input, height=120, placeholder="Contoh: Tampilan aplikasinya simpel dan gampang dipakai. Pesanan resep obat langsung sampai...", label_visibility="collapsed")
+        
+        if st.button("Jalankan Analisis Sentimen", type="primary", use_container_width=True):
             if not user_input.strip():
-                st.warning("Peringatan: Silakan masukkan teks ulasan terlebih dahulu!", icon=":material/warning:")
+                st.warning("Peringatan: Silakan masukkan teks ulasan terlebih dahulu!")
             elif model is None:
-                st.error("Error: Model klasifikasi tidak tersedia.", icon=":material/error:")
+                st.error("Error: Model klasifikasi tidak tersedia.")
             else:
                 with st.spinner("Sistem sedang memproses teks..."):
                     cleaned_text, steps_dict = clean_text_with_steps(user_input)
@@ -143,30 +168,55 @@ with tab1:
                     pred = model.predict(X_input)[0]
                     pred_proba = model.predict_proba(X_input)[0]
                     sentiment = le.inverse_transform([pred])[0]
-                    confidence = np.max(pred_proba) * 100
                     
-                    # Deteksi Aspek
-                    aspek = detect_aspect(user_input)
+                    # Update state
+                    st.session_state.last_input = user_input
+                    st.session_state.predicted_sentiment = sentiment.upper()
+                    st.session_state.confidence = np.max(pred_proba) * 100
+                    st.session_state.aspek = detect_aspect(user_input)
+                    st.session_state.steps_dict = steps_dict
+                    st.session_state.show_results = True
+                    st.session_state.feedback_submitted = False
                     
-                    if sentiment.upper() == 'POSITIF':
-                        st.success(f"**KATEGORI SENTIMEN:** {sentiment.upper()}", icon=":material/check_circle:")
-                    elif sentiment.upper() == 'NEGATIF':
-                        st.error(f"**KATEGORI SENTIMEN:** {sentiment.upper()}", icon=":material/cancel:")
-                    else:
-                        st.info(f"**KATEGORI SENTIMEN:** {sentiment.upper()}", icon=":material/remove_circle:")
-                        
-                    st.info(f"**DETEKSI ASPEK (ABSA):** {aspek}", icon=":material/category:")
+        # Render Results from state
+        if st.session_state.show_results:
+            st.markdown("<br>", unsafe_allow_html=True)
+            sentiment_val = st.session_state.predicted_sentiment
+            
+            if sentiment_val == 'POSITIF':
+                st.success(f"**KATEGORI SENTIMEN:** {sentiment_val}")
+            elif sentiment_val == 'NEGATIF':
+                st.error(f"**KATEGORI SENTIMEN:** {sentiment_val}")
+            else:
+                st.info(f"**KATEGORI SENTIMEN:** {sentiment_val}")
+                
+            st.info(f"**DETEKSI ASPEK (ABSA):** {st.session_state.aspek}")
+            
+            st.write("**Probabilitas Keakuratan (Confidence Score):**")
+            st.progress(float(st.session_state.confidence / 100))
+            st.caption(f"Tingkat Keyakinan Model XGBoost: {st.session_state.confidence:.2f}%")
+            
+            # FITUR BARU: FEEDBACK LOOP / ACTIVE LEARNING
+            st.markdown("---")
+            with st.expander("⚠️ Prediksi AI Salah? Bantu Koreksi Model (Human-in-the-Loop)"):
+                st.write("Sistem AI terkadang tidak akurat membaca makna tersirat. Jika prediksi di atas keliru, silakan pilih sentimen yang benar untuk melatih ulang (retrain) model di masa depan.")
+                
+                true_label = st.selectbox("Sentimen yang sebenarnya:", ["POSITIF", "NEGATIF", "NETRAL"], key="koreksi_box")
+                
+                if st.button("Laporkan Koreksi Data", type="secondary"):
+                    save_feedback(st.session_state.last_input, st.session_state.predicted_sentiment, true_label)
+                    st.session_state.feedback_submitted = True
                     
-                    st.write("**Probabilitas Keakuratan (Confidence Score):**")
-                    st.progress(float(np.max(pred_proba)))
-                    st.caption(f"Tingkat Keyakinan Model XGBoost: {confidence:.2f}%")
-                    
-                    st.markdown("### Detail Preprocessing (Penelusuran White Box)")
-                    for step_name, step_result in steps_dict.items():
-                        st.markdown(f"**{step_name}:**")
-                        st.code(step_result)
+            if st.session_state.feedback_submitted:
+                st.success("✅ Koreksi berhasil direkam ke dalam database 'koreksi_model.csv'. Terima kasih telah melatih AI kami!")
+            
+            st.markdown("### Detail Preprocessing (Penelusuran White Box)")
+            for step_name, step_result in st.session_state.steps_dict.items():
+                st.markdown(f"**{step_name}:**")
+                st.code(step_result)
+                
     with col1B:
-         st.info("Fitur *Single Text* ini digunakan untuk menguji fungsionalitas model *XGBoost* secara spesifik pada satu buah ulasan beserta detail *White Box* preprocessing-nya.", icon=":material/info:")
+         st.info("Fitur *Single Text* ini digunakan untuk menguji fungsionalitas model *XGBoost* secara spesifik pada satu buah ulasan beserta detail *White Box* preprocessing-nya.")
 
 # TAB 2: BATCH PROCESSING
 with tab2:
@@ -191,7 +241,7 @@ with tab2:
             if not text_col:
                 st.error("Error: Tidak dapat menemukan kolom bernama 'teks' atau 'ulasan' dalam file CSV.")
             else:
-                if st.button("Mulai Proses Batch", type="primary", icon=":material/play_arrow:"):
+                if st.button("Mulai Proses Batch", type="primary"):
                     with st.spinner(f"Memproses {len(df_batch)} baris data... (Ini mungkin memakan waktu beberapa saat)"):
                         # Preprocess massal
                         df_batch['teks_bersih'] = df_batch[text_col].apply(lambda x: clean_text_batch(x))
@@ -207,6 +257,22 @@ with tab2:
                         df_batch['Deteksi_Aspek'] = df_batch[text_col].apply(lambda x: detect_aspect(x))
                         
                         st.success(f"✅ Berhasil memproses {len(df_batch)} baris data!")
+                        
+                        # FITUR BARU: DYNAMIC RECOMMENDATION
+                        neg_df = df_batch[df_batch['Prediksi_Sentimen'].str.upper() == 'NEGATIF']
+                        if not neg_df.empty:
+                            aspect_counts = neg_df['Deteksi_Aspek'].value_counts()
+                            top_aspect = aspect_counts.idxmax()
+                            top_count = aspect_counts.max()
+                            total_neg = len(neg_df)
+                            percentage = (top_count / total_neg) * 100
+                            
+                            st.warning(f"""
+                            💡 **RINGKASAN INSIGHT & REKOMENDASI BISNIS**\n
+                            Berdasarkan hasil pemrosesan massal, terdapat **{total_neg} ulasan negatif**. 
+                            Mayoritas keluhan ({percentage:.1f}%) terkonsentrasi pada aspek **'{top_aspect}'**. 
+                            **Saran Tindakan:** Pihak manajemen disarankan untuk memprioritaskan investigasi dan perbaikan pada sektor {top_aspect} dalam kuartal ini untuk meningkatkan kepuasan pengguna.
+                            """)
                         
                         # Tampilkan Grafik (Pie Chart Altair)
                         sentiment_counts = df_batch['Prediksi_Sentimen'].value_counts().reset_index()
@@ -243,7 +309,7 @@ with tab2:
 # TAB 3: DASHBOARD
 with tab3:
     st.markdown("### Karakteristik Data Latih Skripsi")
-    st.info("Dashboard ini menampilkan visualisasi statis dari dataset pelatihan (*Training Data*) berjumlah 3.352 ulasan dari Halodoc dan Alodokter.", icon=":material/bar_chart:")
+    st.info("Dashboard ini menampilkan visualisasi statis dari dataset pelatihan (*Training Data*) berjumlah 3.352 ulasan dari Halodoc dan Alodokter.")
     
     colA, colB, colC = st.columns(3)
     img_dir = "assets"
