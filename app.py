@@ -19,7 +19,7 @@ except:
     stop_words = set(stopwords.words('indonesian'))
 
 # --- CONFIG ---
-st.set_page_config(page_title="Analisis Sentimen Telemedicine", page_icon="🏥", layout="wide")
+st.set_page_config(page_title="Analisis Sentimen Telemedicine", layout="wide")
 
 # --- CUSTOM CSS (SIDEBAR & UI RETOUCH) ---
 st.markdown("""
@@ -146,14 +146,13 @@ def explain_prediction(text, vectorizer, model, base_pred_idx, base_prob, sentim
     return " ".join(explanation)
 
 # --- SIDEBAR NAVIGATION ---
-st.sidebar.title("Navigasi Sistem")
-st.sidebar.image("https://cdn-icons-png.flaticon.com/512/3004/3004458.png", width=100)
-page = st.sidebar.radio("Pilih Menu:", [
-    "🏠 Halaman Beranda",
-    "🔍 Prediksi Sentimen",
-    "📊 Visualisasi Data",
-    "⚖️ Perbandingan Model",
-    "📁 Upload CSV (Batch)"
+st.sidebar.markdown("<h2 style='text-align: center; color: #1f77b4;'>Menu Sistem</h2>", unsafe_allow_html=True)
+page = st.sidebar.radio("", [
+    "Halaman Beranda",
+    "Prediksi Sentimen",
+    "Visualisasi Data",
+    "Perbandingan Model",
+    "Upload CSV (Batch)"
 ])
 st.sidebar.markdown("---")
 
@@ -170,8 +169,8 @@ st.sidebar.markdown("""
 # ==========================================
 # PAGE 1: BERANDA
 # ==========================================
-if page == "🏠 Halaman Beranda":
-    st.title("Sistem Klasifikasi Sentimen Telemedicine 🏥")
+if page == "Halaman Beranda":
+    st.title("Sistem Klasifikasi Sentimen Telemedicine")
     st.markdown("Selamat datang di Aplikasi Dasbor berbasis **Machine Learning (XGBoost)** untuk menganalisis opini publik terhadap aplikasi *Halodoc* dan *Alodokter*.")
     
     st.markdown("---")
@@ -211,8 +210,8 @@ if page == "🏠 Halaman Beranda":
 # ==========================================
 # PAGE 2: PREDIKSI SENTIMEN (RETOUCHED)
 # ==========================================
-elif page == "🔍 Prediksi Sentimen":
-    st.title("🔍 Prediksi Sentimen & Analisis Aspek (ABSA)")
+elif page == "Prediksi Sentimen":
+    st.title("Prediksi Sentimen & Analisis Aspek (ABSA)")
     st.markdown("Uji fungsionalitas model secara langsung beserta **Explainable AI** dan fitur **Koreksi Data (Human-in-the-loop)**.")
     
     colA, colB = st.columns([3, 1])
@@ -302,8 +301,8 @@ elif page == "🔍 Prediksi Sentimen":
 # ==========================================
 # PAGE 3, 4, 5 (REMAIN UNCHANGED)
 # ==========================================
-elif page == "📊 Visualisasi Data":
-    st.title("📊 Visualisasi Dataset Penelitian")
+elif page == "Visualisasi Data":
+    st.title("Visualisasi Dataset Penelitian")
     st.markdown("Karakteristik 3.352 data latih yang dikumpulkan dari Play Store, App Store, dan Twitter.")
     
     tab_dist, tab_aspect, tab_wordcloud, tab_cm, tab_detail = st.tabs(["Distribusi Platform", "Rekapitulasi 6 Aspek", "WordCloud", "Confusion Matrix", "Detail Data Tweet"])
@@ -315,8 +314,8 @@ elif page == "📊 Visualisasi Data":
     with tab_aspect:
         st.subheader("Rekapitulasi 6 Aspek Layanan")
         try:
-            # Membaca data CSV untuk aspek layanan
-            df_analisis = pd.read_csv(r"c:\Users\LENOVO\Documents\skripsi\Data_Skripsi_Halodoc_Alodokter\Analisis_6_Aspek_Layanan.csv")
+            # Membaca data CSV untuk aspek layanan dari folder assets
+            df_analisis = pd.read_csv("assets/Analisis_6_Aspek_Layanan.csv")
             st.dataframe(df_analisis, use_container_width=True)
             
             # Bar chart menggunakan data numerik Positif, Negatif, Netral (jika ada)
@@ -333,7 +332,7 @@ elif page == "📊 Visualisasi Data":
         st.subheader("Detail Data Tweet Halodoc")
         st.markdown("Halaman Eksplorasi Data Detail untuk penguji skripsi meninjau baris tweet secara mendalam.")
         try:
-            df_detail = pd.read_csv(r"c:\Users\LENOVO\Documents\skripsi\Data_Skripsi_Halodoc_Alodokter\HASIL_AKHIR_TWITTER_HALODOC_bersih.csv")
+            df_detail = pd.read_csv("assets/HASIL_AKHIR_TWITTER_HALODOC_bersih.csv")
             st.dataframe(df_detail, use_container_width=True)
         except Exception as e:
             st.error(f"Gagal memuat HASIL_AKHIR_TWITTER_HALODOC_bersih.csv: {e}")
@@ -346,8 +345,8 @@ elif page == "📊 Visualisasi Data":
     with tab_cm:
         if os.path.exists("assets/CM_XGBoost_Halodoc.png"): st.image("assets/CM_XGBoost_Halodoc.png", caption="Confusion Matrix XGBoost")
 
-elif page == "⚖️ Perbandingan Model":
-    st.title("⚖️ Perbandingan Performa Algoritma")
+elif page == "Perbandingan Model":
+    st.title("Perbandingan Performa Algoritma")
     metrics_data = pd.DataFrame({'Model': ['Logistic Regression', 'Random Forest', 'XGBoost'], 'Accuracy': [78.5, 84.2, 91.8], 'Precision': [79.1, 85.0, 92.1], 'Recall': [77.8, 83.9, 91.5], 'F1-Score': [78.4, 84.4, 91.7]})
     st.dataframe(metrics_data.style.highlight_max(subset=['Accuracy', 'Precision', 'Recall', 'F1-Score'], color='lightgreen'), use_container_width=True)
     metrics_melted = pd.melt(metrics_data, id_vars=['Model'], var_name='Metric', value_name='Score')
@@ -355,8 +354,8 @@ elif page == "⚖️ Perbandingan Model":
     fig3.update_layout(yaxis_range=[60, 100])
     st.plotly_chart(fig3, use_container_width=True)
 
-elif page == "📁 Upload CSV (Batch)":
-    st.title("📁 Analisis Massal (Batch Prediction)")
+elif page == "Upload CSV (Batch)":
+    st.title("Analisis Massal (Batch Prediction)")
     uploaded_file = st.file_uploader("Pilih file dataset (.csv)", type=["csv"])
     if uploaded_file is not None:
         df_batch = pd.read_csv(uploaded_file)
