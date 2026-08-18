@@ -24,35 +24,29 @@ st.set_page_config(page_title="Analisis Sentimen Telemedicine", layout="wide")
 # --- CUSTOM CSS (SIDEBAR & UI RETOUCH) ---
 st.markdown("""
 <style>
-    /* Retouch Sidebar Border & Background */
-    [data-testid="stSidebar"] {
-        border-right: 2px solid #e0e4e8;
-        background-color: #f8f9fa;
-    }
-    
     /* Profil Mahasiswa di bawah Sidebar */
     .sidebar-footer {
         position: fixed;
         bottom: 0;
         left: 0;
-        width: 20rem; /* Sesuaikan lebar sidebar default */
+        width: 20rem;
         padding: 15px;
-        background-color: #f1f3f5;
-        border-top: 2px solid #e0e4e8;
+        border-top: 1px solid rgba(128, 128, 128, 0.2);
         text-align: center;
         z-index: 99;
     }
     
     /* Retouch Card Dashboard Beranda */
     .home-card {
-        background-color: white;
         padding: 20px;
         border-radius: 10px;
         border-left: 5px solid #1f77b4;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         margin-bottom: 20px;
+        background-color: rgba(255, 255, 255, 0.05); /* Adaptif untuk mode terang/gelap */
+        border: 1px solid rgba(128, 128, 128, 0.2);
     }
-    .home-card h3 { margin-top: 0; color: #343a40; font-size: 18px;}
+    .home-card h3 { margin-top: 0; font-size: 18px; opacity: 0.8;}
     .home-card p { font-size: 24px; font-weight: bold; color: #1f77b4; margin: 0;}
     
     /* XAI Highlight Word */
@@ -146,7 +140,7 @@ def explain_prediction(text, vectorizer, model, base_pred_idx, base_prob, sentim
     return " ".join(explanation)
 
 # --- SIDEBAR NAVIGATION ---
-st.sidebar.markdown("<h2 style='text-align: center; color: #1f77b4;'>Menu Sistem</h2>", unsafe_allow_html=True)
+st.sidebar.markdown("<h2 style='text-align: center;'>Menu Sistem</h2>", unsafe_allow_html=True)
 page = st.sidebar.radio("", [
     "Halaman Beranda",
     "Prediksi Sentimen",
@@ -158,10 +152,10 @@ st.sidebar.markdown("---")
 
 # Profil Mahasiswa di Footer Sidebar
 st.sidebar.markdown("""
-<div style="margin-top: 50px; padding: 15px; background-color: #f1f3f5; border-radius: 8px; border: 1px solid #dee2e6;">
-    <p style="margin:0; font-size: 12px; color: #6c757d; font-weight: bold;">SKRIPSI 2026</p>
-    <p style="margin:0; font-size: 14px; color: #212529; font-weight: bold;">Arif Ario Wibowo</p>
-    <p style="margin:0; font-size: 12px; color: #6c757d;">Analisis Sentimen Halodoc & Alodokter</p>
+<div style="margin-top: 50px; padding: 15px; border-radius: 8px; border: 1px solid rgba(128, 128, 128, 0.2);">
+    <p style="margin:0; font-size: 12px; font-weight: bold; opacity: 0.7;">SKRIPSI 2026</p>
+    <p style="margin:0; font-size: 14px; font-weight: bold;">Arif Ario Wibowo</p>
+    <p style="margin:0; font-size: 12px; opacity: 0.7;">Analisis Sentimen Halodoc & Alodokter</p>
 </div>
 """, unsafe_allow_html=True)
 
