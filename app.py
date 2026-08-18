@@ -188,7 +188,7 @@ if page == "Halaman Beranda":
         st.subheader("Bagaimana Cara Menggunakan Sistem Ini?")
         with st.expander("Klik untuk melihat panduan fitur", expanded=True):
             st.markdown("""
-            - **🔍 Prediksi Sentimen**: Uji coba model XGBoost secara langsung. Ketikkan kalimat, dan biarkan AI mendeteksi **Sentimen**, **Aspek ABSA**, dan menampilkan **Visualisasi Kata Pemicu (XAI)**.
+            - **🔍 Prediksi Sentimen**: Uji coba model XGBoost secara langsung. Ketikkan kalimat, dan biarkan Sistem mendeteksi **Sentimen**, **Aspek ABSA**, dan menampilkan **Visualisasi Kata Pemicu**.
             - **📊 Visualisasi Data**: Lihat grafik sebaran data asli (Play Store, App Store, Twitter), aspek ABSA, dan *WordCloud*.
             - **⚖️ Perbandingan Model**: Tinjau hasil komparasi algoritma Logistic Regression, Random Forest, dan XGBoost.
             - **📁 Upload CSV**: Unggah file CSV dan proses ratusan ulasan secara otomatis (Batch Processing).
@@ -206,7 +206,7 @@ if page == "Halaman Beranda":
 # ==========================================
 elif page == "Prediksi Sentimen":
     st.title("Prediksi Sentimen & Analisis Aspek (ABSA)")
-    st.markdown("Uji fungsionalitas model secara langsung beserta **Explainable AI** dan fitur **Koreksi Data (Human-in-the-loop)**.")
+    st.markdown("Uji fungsionalitas model secara langsung beserta **Visualisasi Keputusan Sistem** dan fitur **Koreksi Data (Human-in-the-loop)**.")
     
     colA, colB = st.columns([3, 1])
     with colA:
@@ -269,7 +269,7 @@ elif page == "Prediksi Sentimen":
             st.progress(float(st.session_state.confidence / 100))
             
             # FITUR XAI (PRESISI KATA)
-            st.markdown("### Explainable AI (Visualisasi Kata Pemicu)")
+            st.markdown("### Transparansi Keputusan (Visualisasi Kata Pemicu)")
             st.markdown("Kata yang disorot memiliki bobot kontribusi terbesar terhadap keputusan sistem:")
             st.markdown(f'<div style="padding:15px; border:1px solid #ccc; border-radius:8px; font-size:16px;">{st.session_state.xai_html}</div>', unsafe_allow_html=True)
             
@@ -326,7 +326,7 @@ elif page == "Visualisasi Data":
         st.subheader("Detail Data Tweet Halodoc")
         st.markdown("Halaman Eksplorasi Data Detail untuk penguji skripsi meninjau baris tweet secara mendalam.")
         try:
-            df_detail = pd.read_csv("assets/HASIL_AKHIR_TWITTER_HALODOC_bersih.csv")
+            df_detail = pd.read_csv("assets/HASIL_AKHIR_TWITTER_HALODOC_bersih.csv", sep=";")
             st.dataframe(df_detail, use_container_width=True)
         except Exception as e:
             st.error(f"Gagal memuat HASIL_AKHIR_TWITTER_HALODOC_bersih.csv: {e}")
