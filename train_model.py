@@ -16,6 +16,9 @@ print("Memulai proses pelatihan ulang model XGBoost (Versi 2.0)...")
 # --- NLTK & Sastrawi Setup ---
 nltk.download('stopwords')
 stop_words = set(stopwords.words('indonesian'))
+# PENTING: Jangan hapus kata negasi yang bisa membalikkan sentimen!
+negation_words = {'tidak', 'kurang', 'bukan', 'jangan', 'belum', 'tak', 'tiada', 'ga', 'ngga', 'enggak'}
+stop_words = stop_words - negation_words
 
 factory = StemmerFactory()
 stemmer = factory.create_stemmer()

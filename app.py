@@ -18,6 +18,10 @@ except:
     nltk.download('stopwords')
     stop_words = set(stopwords.words('indonesian'))
 
+# PENTING: Jangan hapus kata negasi yang bisa membalikkan sentimen!
+negation_words = {'tidak', 'kurang', 'bukan', 'jangan', 'belum', 'tak', 'tiada', 'ga', 'ngga', 'enggak'}
+stop_words = stop_words - negation_words
+
 # --- CONFIG ---
 st.set_page_config(page_title="Analisis Sentimen Telemedicine", layout="wide")
 
