@@ -4,4 +4,5 @@ numpy
 scikit-learn
 xgboost
 Sastrawi
-altair
+nltk
+plotly
